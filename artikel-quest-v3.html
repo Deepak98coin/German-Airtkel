@@ -1,0 +1,1348 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Artikel Quest mit Rohit</title>
+<link href="https://fonts.googleapis.com/css2?family=Bangers&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ─── GLOBAL ─────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --der:#4a7ff2; --die:#ef4949; --das:#29ec71;
+  --gold:#FFD54F;
+  --bg:#ffffff; --bg2:#f5f5f5; --border:#e0e0e0;
+  --text:#1a1a1a; --text2:#666; --text3:#999;
+  --der-bg:#eff6ff; --der-border:#93c5fd;
+  --die-bg:#fff1f2; --die-border:#fca5a5;
+  --das-bg:#f0fdf4; --das-border:#86efac;
+  --correct:#16a34a; --wrong:#f20808;
+  --shadow:0 2px 12px rgba(0,0,0,0.08);
+  --radius:12px;
+}
+[data-theme="dark"] {
+  --bg:#111; --bg2:#1e1e1e; --border:#2e2e2e;
+  --text:#f5f5f5; --text2:#aaa; --text3:#666;
+  --der-bg:#1e3a5f; --der-border:#2563eb;
+  --die-bg:#4c1d1d; --die-border:#dc2626;
+  --das-bg:#14391e; --das-border:#16a34a;
+  --shadow:0 2px 12px rgba(0,0,0,0.4);
+}
+body {
+  font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  min-height: 100vh;
+  transition: background 0.3s, color 0.3s;
+}
+
+/* ─── SCREEN MANAGER ─────────────────────────────────── */
+.screen { display: none; }
+.screen.active { display: flex; }
+
+/* ══════════════════════════════════════════════════════
+   LOGIN SCREEN
+══════════════════════════════════════════════════════ */
+#login-screen {
+  min-height: 100vh;
+  background: #0D0D1A;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+.stars-layer { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+.star { position: absolute; border-radius: 50%; background: #fff;
+  animation: twinkle var(--d) ease-in-out infinite; opacity: 0; }
+@keyframes twinkle {
+  0%,100%{opacity:0;transform:scale(0.6)}50%{opacity:var(--op);transform:scale(1)}
+}
+.bubbles-layer { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+.bubble {
+  position: absolute; bottom: -80px;
+  font-family: 'Bangers', cursive; font-size: 2.2rem; letter-spacing: 2px;
+  border-radius: 50%; width: 64px; height: 64px;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; animation: floatUp var(--dur) ease-in infinite; animation-delay: var(--delay);
+}
+.bubble.der { color: #4FC3F7; border: 2px solid #4FC3F7; text-shadow: 0 0 16px #4FC3F7; }
+.bubble.die { color: #F48FB1; border: 2px solid #F48FB1; text-shadow: 0 0 16px #F48FB1; }
+.bubble.das { color: #A5D6A7; border: 2px solid #A5D6A7; text-shadow: 0 0 16px #A5D6A7; }
+@keyframes floatUp {
+  0%{opacity:0;transform:translateY(0) rotate(-6deg)}
+  10%{opacity:0.7}80%{opacity:0.5}
+  100%{opacity:0;transform:translateY(-110vh) rotate(12deg)}
+}
+
+.login-card {
+  position: relative; z-index: 10;
+  background: #13132a;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 24px;
+  padding: 2.5rem 2.8rem 2.8rem;
+  width: min(420px, 94vw);
+  box-shadow: 0 8px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06);
+  animation: cardIn 0.7s cubic-bezier(0.34,1.56,0.64,1) both;
+}
+@keyframes cardIn {
+  from{opacity:0;transform:translateY(40px) scale(0.92)}
+  to{opacity:1;transform:translateY(0) scale(1)}
+}
+.rank-badge {
+  position: absolute; top: -14px; right: 24px;
+  background: linear-gradient(135deg,#FFD54F,#FF8F00);
+  color: #3d2200;
+  font-family: 'Bangers', cursive; font-size: 0.85rem; letter-spacing: 1.5px;
+  padding: 3px 14px; border-radius: 999px;
+  box-shadow: 0 2px 12px rgba(255,180,0,0.35);
+}
+.crown { font-size: 2.8rem; animation: bob 2.4s ease-in-out infinite; display: inline-block; }
+@keyframes bob { 0%,100%{transform:translateY(0) rotate(-4deg)}50%{transform:translateY(-8px) rotate(4deg)} }
+.game-title {
+  font-family: 'Bangers', cursive; font-size: 3rem; letter-spacing: 4px; line-height: 1;
+  background: linear-gradient(135deg,#4FC3F7 0%,#F48FB1 50%,#A5D6A7 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  margin: 0.2rem 0 0.5rem;
+}
+.tagline { font-size: 0.82rem; color: rgba(255,255,255,0.4); letter-spacing: 1px; text-transform: uppercase; font-weight: 600; }
+.logo-area { text-align: center; margin-bottom: 2rem; }
+.articles-row { display: flex; gap: 8px; justify-content: center; margin: 1.2rem 0 0.4rem; }
+.pill {
+  font-family: 'Bangers', cursive; font-size: 1.05rem; letter-spacing: 2px;
+  padding: 4px 16px; border-radius: 999px; border: 1.5px solid; opacity: 0.75;
+}
+.pill.der { color: #4FC3F7; border-color: #4FC3F7; }
+.pill.die { color: #F48FB1; border-color: #F48FB1; }
+.pill.das { color: #A5D6A7; border-color: #A5D6A7; }
+
+.form-group { margin-bottom: 1.1rem; }
+.form-group label {
+  display: block; font-size: 0.78rem; font-weight: 700;
+  color: rgba(255,255,255,0.5); letter-spacing: 1.2px; text-transform: uppercase; margin-bottom: 6px;
+}
+.login-input {
+  width: 100%; background: rgba(255,255,255,0.05);
+  border: 1.5px solid rgba(255,255,255,0.1); border-radius: 12px;
+  padding: 12px 16px; color: #fff;
+  font-family: 'Nunito', sans-serif; font-size: 1rem; font-weight: 600; outline: none;
+  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+}
+.login-input:focus {
+  border-color: #F48FB1; background: rgba(244,143,177,0.07);
+  box-shadow: 0 0 0 3px rgba(244,143,177,0.12);
+}
+.login-input::placeholder { color: rgba(255,255,255,0.2); font-weight: 400; }
+
+.forgot { text-align: right; margin-top: 6px; }
+.forgot a { font-size: 0.78rem; color: #FFD54F; text-decoration: none; opacity: 0.7; font-weight: 600; }
+.forgot a:hover { opacity: 1; }
+
+.btn-login {
+  width: 100%; margin-top: 0.5rem; padding: 14px; border: none; border-radius: 14px;
+  background: linear-gradient(135deg,#4a7fff 0%,#a35cff 100%);
+  color: #fff; font-family: 'Bangers', cursive; font-size: 1.4rem; letter-spacing: 3px;
+  cursor: pointer; position: relative; overflow: hidden;
+  transition: transform 0.15s, box-shadow 0.15s;
+  box-shadow: 0 4px 24px rgba(100,80,255,0.35);
+}
+.btn-login::after { content:''; position:absolute; inset:0; background:linear-gradient(180deg,rgba(255,255,255,0.12) 0%,transparent 60%); pointer-events:none; }
+.btn-login:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(100,80,255,0.5); }
+.btn-login:active { transform: scale(0.97); }
+
+.login-error {
+  color: #F48FB1; font-size: 0.82rem; font-weight: 700;
+  text-align: center; margin-top: 8px; height: 18px; transition: opacity 0.2s;
+}
+
+.score-bar { display:flex; align-items:center; justify-content:center; gap:6px; margin:1.5rem 0 0.5rem; opacity:0.45; }
+.score-star { color: #FFD54F; font-size: 0.9rem; }
+.score-text { font-size:0.72rem; font-weight:700; color:rgba(255,255,255,0.5); letter-spacing:1px; text-transform:uppercase; }
+
+.divider-line { display:flex; align-items:center; gap:12px; margin:1.4rem 0; }
+.divider-line::before,.divider-line::after { content:''; flex:1; height:1px; background:rgba(255,255,255,0.08); }
+.divider-line span { font-size:0.72rem; color:rgba(255,255,255,0.3); font-weight:700; letter-spacing:1px; text-transform:uppercase; }
+
+.btn-guest {
+  width:100%; padding:11px; border-radius:12px;
+  border:1.5px solid rgba(255,255,255,0.1); background:transparent;
+  color:rgba(255,255,255,0.5); font-family:'Nunito',sans-serif;
+  font-size:0.9rem; font-weight:700; cursor:pointer;
+  transition:border-color 0.2s,color 0.2s,background 0.2s; letter-spacing:0.5px;
+}
+.btn-guest:hover { border-color:rgba(255,255,255,0.25); color:rgba(255,255,255,0.75); background:rgba(255,255,255,0.04); }
+
+.register { text-align:center; font-size:0.88rem; color:rgba(255,255,255,0.35); font-weight:600; }
+.register a { color:#F48FB1; text-decoration:none; font-weight:800; }
+
+/* ══════════════════════════════════════════════════════
+   DIFFICULTY SCREEN
+══════════════════════════════════════════════════════ */
+#diff-screen {
+  min-height: 100vh;
+  background: #0D0D1A;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  position: relative;
+}
+.diff-card {
+  position: relative; z-index: 10;
+  background: #13132a;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 24px;
+  padding: 2.5rem 2.4rem 2.8rem;
+  width: min(460px, 94vw);
+  box-shadow: 0 8px 60px rgba(0,0,0,0.5);
+  animation: cardIn 0.6s cubic-bezier(0.34,1.56,0.64,1) both;
+  text-align: center;
+}
+.welcome-text {
+  font-family: 'Bangers', cursive;
+  font-size: 2.2rem; letter-spacing: 3px;
+  background: linear-gradient(135deg,#4FC3F7,#F48FB1,#A5D6A7);
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+  margin-bottom: 0.3rem;
+}
+.welcome-sub { color: rgba(255,255,255,0.4); font-size: 0.88rem; margin-bottom: 2rem; font-weight: 600; }
+
+.diff-options { display: flex; gap: 16px; margin-top: 0.5rem; }
+
+.diff-btn {
+  flex: 1; border: 2px solid; border-radius: 18px;
+  padding: 1.8rem 1rem 1.4rem;
+  background: transparent; cursor: pointer;
+  transition: transform 0.18s, box-shadow 0.18s, background 0.18s;
+  text-align: center; position: relative; overflow: hidden;
+}
+.diff-btn:hover { transform: translateY(-4px); }
+.diff-btn:active { transform: scale(0.96); }
+
+.diff-easy { border-color: #A5D6A7; }
+.diff-easy:hover { background: rgba(165,214,167,0.08); box-shadow: 0 8px 28px rgba(165,214,167,0.2); }
+.diff-hard { border-color: #F48FB1; }
+.diff-hard:hover { background: rgba(244,143,177,0.08); box-shadow: 0 8px 28px rgba(244,143,177,0.25); }
+.diff-b2 { border-color: #b39ddb; border-radius: 18px; background: transparent; cursor: pointer; transition: transform 0.18s, box-shadow 0.18s, background 0.18s; }
+.diff-b2:hover { transform: translateY(-4px); background: rgba(179,157,219,0.08); box-shadow: 0 8px 28px rgba(179,157,219,0.25); }
+.diff-b2:active { transform: scale(0.96); }
+.diff-b2 .diff-label { color: #b39ddb; }
+.diff-b2 .diff-tag { color: #b39ddb; border-color: rgba(179,157,219,0.4); }
+
+.diff-icon { font-size: 2.6rem; margin-bottom: 0.6rem; }
+.diff-label {
+  font-family: 'Bangers', cursive; font-size: 1.8rem; letter-spacing: 3px;
+  margin-bottom: 0.5rem;
+}
+.diff-easy .diff-label { color: #A5D6A7; }
+.diff-hard .diff-label { color: #F48FB1; }
+
+.diff-desc { font-size: 0.78rem; color: rgba(255,255,255,0.4); font-weight: 600; line-height: 1.5; }
+
+.diff-tags { display: flex; flex-direction: column; gap: 4px; margin-top: 10px; }
+.diff-tag {
+  font-size: 0.7rem; font-weight: 700; letter-spacing: 0.5px;
+  padding: 3px 10px; border-radius: 999px; border: 1px solid;
+}
+.diff-easy .diff-tag { color: #A5D6A7; border-color: rgba(165,214,167,0.4); }
+.diff-hard .diff-tag { color: #F48FB1; border-color: rgba(244,143,177,0.4); }
+
+.back-link {
+  margin-top: 1.8rem; font-size: 0.82rem; color: rgba(255,255,255,0.3);
+  cursor: pointer; font-weight: 700; transition: color 0.2s;
+}
+.back-link:hover { color: rgba(255,255,255,0.6); }
+
+/* ══════════════════════════════════════════════════════
+   GAME SCREEN — Deepak's original styles
+══════════════════════════════════════════════════════ */
+#game-wrapper {
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  flex-direction: column;
+  align-items: center;
+}
+header {
+  width: 100%; max-width: 500px;
+  padding: 14px 20px;
+  display: flex; align-items: center; justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+}
+.header-logo { font-size:1.5rem; font-weight:700; letter-spacing:0.12em; color:var(--text); }
+.header-icons { display:flex; gap:6px; }
+.icon-btn {
+  width:36px; height:36px; border-radius:50%;
+  border:1px solid var(--border); background:var(--bg);
+  cursor:pointer; display:flex; align-items:center; justify-content:center;
+  font-size:16px; color:var(--text2); transition:background 0.15s;
+}
+.icon-btn:hover { background:var(--bg2); }
+
+/* difficulty badge in header */
+.diff-badge-header {
+  font-size: 0.7rem; font-weight: 700; letter-spacing: 1px;
+  padding: 3px 10px; border-radius: 999px; text-transform: uppercase;
+}
+.diff-badge-header.easy { background: rgba(41,236,113,0.15); color: #29ec71; border: 1px solid rgba(41,236,113,0.3); }
+.diff-badge-header.hard { background: rgba(239,73,73,0.15); color: #ef4949; border: 1px solid rgba(239,73,73,0.3); }
+.diff-badge-header.b2   { background: rgba(179,157,219,0.15); color: #b39ddb; border: 1px solid rgba(179,157,219,0.35); }
+
+main {
+  flex: 1; width: 100%; max-width: 500px;
+  padding: 24px 20px;
+  display: flex; flex-direction: column; align-items: center; gap: 20px;
+}
+.round-dots { display:flex; gap:8px; }
+.dot { width:10px; height:10px; border-radius:50%; background:var(--border); transition:background 0.3s; }
+.dot.der{background:var(--der)} .dot.die{background:var(--die)} .dot.das{background:var(--das)}
+.dot.wrong{background:var(--wrong)} .dot.active{background:var(--text3);box-shadow:0 0 0 2px var(--text3)}
+
+.noun-card {
+  width:100%; background:var(--bg);
+  border:1.5px solid var(--border); border-radius:20px;
+  padding:36px 28px 28px; text-align:center;
+  box-shadow:var(--shadow);
+  transition:border-color 0.3s,background 0.3s,transform 0.2s;
+  position:relative; overflow:hidden;
+}
+.noun-card::before {
+  content:''; position:absolute; top:0;left:0;right:0; height:4px;
+  background:var(--border); transition:background 0.3s;
+}
+.noun-card.revealed-der{border-color:var(--der-border);background:var(--der-bg)}
+.noun-card.revealed-der::before{background:var(--der)}
+.noun-card.revealed-die{border-color:var(--die-border);background:var(--die-bg)}
+.noun-card.revealed-die::before{background:var(--die)}
+.noun-card.revealed-das{border-color:var(--das-border);background:var(--das-bg)}
+.noun-card.revealed-das::before{background:var(--das)}
+.noun-card.fly-out-right{transform:translateX(110%) rotate(8deg);opacity:0;transition:transform 0.35s cubic-bezier(.4,0,1,1),opacity 0.3s}
+.noun-card.fly-out-left{transform:translateX(-110%) rotate(-8deg);opacity:0;transition:transform 0.35s cubic-bezier(.4,0,1,1),opacity 0.3s}
+.noun-card.fly-in{transform:translateX(0) rotate(0);opacity:1;transition:transform 0.3s cubic-bezier(0.34,1.56,0.64,1),opacity 0.2s}
+
+.artikel-pill {
+  display:inline-block; font-size:13px; font-weight:600;
+  padding:3px 12px; border-radius:999px; margin-bottom:12px;
+  opacity:0; transform:scale(0.8); transition:opacity 0.3s,transform 0.3s;
+}
+.artikel-pill.show{opacity:1;transform:scale(1)}
+.artikel-pill.der{background:var(--der);color:#fff}
+.artikel-pill.die{background:var(--die);color:#fff}
+.artikel-pill.das{background:var(--das);color:#fff}
+
+.noun-category{font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);margin-bottom:10px}
+.noun-word{font-size:3.2rem;font-weight:700;line-height:1;margin-bottom:8px;letter-spacing:-0.02em;transition:color 0.3s}
+.revealed-der .noun-word{color:var(--der)} .revealed-die .noun-word{color:var(--die)} .revealed-das .noun-word{color:var(--das)}
+.noun-plural{font-size:13px;color:var(--text3);margin-bottom:16px}
+.noun-hindi{font-size:1rem;color:var(--text2);margin-bottom:2px;font-weight:600}
+.noun-english{font-size:0.85rem;color:var(--text3);margin-bottom:8px;letter-spacing:0.02em}
+.reveal-hint{
+  font-size:12px;line-height:1.5;color:var(--text2);
+  padding:8px 12px;border-radius:8px;background:rgba(0,0,0,0.04);
+  opacity:0;transform:translateY(4px);transition:opacity 0.3s 0.1s,transform 0.3s 0.1s;text-align:left;
+}
+[data-theme="dark"] .reveal-hint{background:rgba(255,255,255,0.06)}
+.reveal-hint.show{opacity:1;transform:translateY(0)}
+
+.verdict{margin-top:12px;font-size:14px;font-weight:600;height:20px;opacity:0;transition:opacity 0.2s}
+.verdict.show{opacity:1} .verdict.correct{color:var(--correct)} .verdict.wrong{color:var(--wrong)}
+
+/* HARD mode timer bar */
+.timer-bar-wrap {
+  width: 100%; background: var(--border); border-radius: 999px;
+  height: 6px; overflow: hidden; display: none;
+}
+.timer-bar-fill {
+  height: 100%; border-radius: 999px;
+  background: linear-gradient(90deg, #29ec71, #FFD54F, #ef4949);
+  transition: width 0.1s linear;
+}
+
+.btn-row{display:flex;gap:12px;width:100%}
+.art-btn{
+  flex:1; padding:18px 10px; border-radius:14px;
+  font-size:1.3rem; font-weight:700; cursor:pointer; letter-spacing:0.02em;
+  border:1.5px solid; transition:transform 0.1s,filter 0.15s,opacity 0.2s;
+  position:relative; overflow:hidden;
+}
+.art-btn::after{content:'';position:absolute;inset:0;background:rgba(255,255,255,0);transition:background 0.1s}
+.art-btn:hover:not(:disabled)::after{background:rgba(255,255,255,0.15)}
+.art-btn:active:not(:disabled){transform:scale(0.95)}
+.art-btn:disabled{cursor:default;opacity:0.35}
+.btn-der{background:var(--der);color:#fff;border-color:var(--der)}
+.btn-die{background:var(--die);color:#fff;border-color:var(--die)}
+.btn-das{background:var(--das);color:#fff;border-color:var(--das)}
+.art-btn.btn-correct{background:#16a34a!important;border-color:#16a34a!important;box-shadow:0 0 0 3px rgba(22,163,74,0.45);transform:scale(1.04);color:#fff!important}
+.art-btn.btn-wrong{background:#dc2626!important;border-color:#dc2626!important;box-shadow:0 0 0 3px rgba(220,38,38,0.4);color:#fff!important}
+
+/* Nav buttons (easy mode) */
+.nav-btn-row{display:none;gap:12px;width:100%;justify-content:center;margin-top:4px}
+.nav-btn{
+  flex:1;max-width:160px;padding:12px 10px;border-radius:14px;
+  font-size:1rem;font-weight:700;cursor:pointer;
+  border:1.5px solid var(--border);background:var(--bg2);color:var(--text);
+  transition:background 0.15s,transform 0.1s;letter-spacing:0.03em;
+}
+.nav-btn:hover:not(:disabled){background:var(--border)}
+.nav-btn:active:not(:disabled){transform:scale(0.96)}
+.nav-btn:disabled{opacity:0.3;cursor:default}
+.nav-btn.nav-next{background:var(--text);color:var(--bg)}
+[data-theme="dark"] .nav-btn.nav-next{background:#f5f5f5;color:#111}
+
+/* Voice button on card */
+.voice-btn{
+  position:absolute;top:10px;right:12px;
+  background:transparent;border:none;cursor:pointer;
+  font-size:1.2rem;opacity:0.55;transition:opacity 0.2s,transform 0.15s;
+  line-height:1;padding:4px;border-radius:8px;
+}
+.voice-btn:hover{opacity:1;transform:scale(1.15)}
+.voice-btn.speaking{opacity:1;animation:voicePulse 0.6s ease-in-out infinite alternate}
+@keyframes voicePulse{from{transform:scale(1)}to{transform:scale(1.25)}}
+
+.history-row{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;min-height:32px}
+.history-tile{
+  padding:4px 12px;border-radius:6px;font-size:12px;font-weight:600;color:#fff;
+  opacity:0;transform:scale(0.8);transition:opacity 0.3s,transform 0.3s;
+}
+.history-tile.show{opacity:1;transform:scale(1)}
+.history-tile.der{background:var(--der)} .history-tile.die{background:var(--die)}
+.history-tile.das{background:var(--das)} .history-tile.wrong-guess{background:var(--wrong)}
+
+.streak-row{display:flex;gap:20px;justify-content:center}
+.stat-mini{text-align:center}
+.stat-mini-num{font-size:1.6rem;font-weight:700;line-height:1}
+.stat-mini-label{font-size:11px;color:var(--text3);margin-top:2px;text-transform:uppercase;letter-spacing:0.06em}
+
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,0.4);
+  display:flex;align-items:flex-end;justify-content:center;
+  z-index:100;opacity:0;pointer-events:none;transition:opacity 0.25s;
+}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal{
+  background:var(--bg);width:100%;max-width:500px;
+  border-radius:20px 20px 0 0;padding:28px 24px 40px;
+  transform:translateY(100%);transition:transform 0.3s cubic-bezier(0.34,1.2,0.64,1);
+  max-height:90vh;overflow-y:auto;
+}
+.modal-overlay.open .modal{transform:translateY(0)}
+.modal-title{font-size:1rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;text-align:center;margin-bottom:20px}
+.modal-close{
+  position:absolute;top:20px;right:20px;
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:50%;width:32px;height:32px;cursor:pointer;
+  font-size:18px;color:var(--text2);display:flex;align-items:center;justify-content:center;
+}
+.help-example{display:flex;align-items:center;gap:12px;margin:10px 0;padding:10px 14px;border-radius:10px;background:var(--bg2)}
+.help-tile{padding:4px 14px;border-radius:6px;font-weight:700;font-size:14px;color:#fff;flex-shrink:0}
+.help-text{font-size:14px;color:var(--text2);line-height:1.4}
+.help-rule{font-size:13px;padding:8px 12px;border-radius:8px;background:var(--bg2);margin:6px 0;line-height:1.5}
+.help-rule strong{color:var(--text)}
+.help-section-title{font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text3);margin:16px 0 8px}
+
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:20px}
+.stat-box{background:var(--bg2);border-radius:10px;padding:12px 8px;text-align:center}
+.stat-num{font-size:2rem;font-weight:700}
+.stat-label{font-size:10px;color:var(--text3);margin-top:2px;letter-spacing:0.04em}
+
+.share-btn-full{
+  width:100%;padding:14px;background:#1a1a1a;color:#fff;
+  border:none;border-radius:12px;font-size:1rem;font-weight:600;
+  cursor:pointer;margin-top:12px;letter-spacing:0.04em;transition:background 0.15s;
+}
+[data-theme="dark"] .share-btn-full{background:#f5f5f5;color:#111}
+.share-btn-full:hover{opacity:0.85}
+
+.result-emoji-grid{
+  font-size:1.6rem;letter-spacing:4px;text-align:center;
+  padding:14px;background:var(--bg2);border-radius:12px;
+  margin:12px 0;line-height:1.6;font-family:monospace;
+}
+
+#result-screen{width:100%;display:none;flex-direction:column;align-items:center;gap:16px;text-align:center}
+.result-big-emoji{font-size:3rem}
+.result-title{font-size:1.6rem;font-weight:700}
+.result-sub{font-size:0.95rem;color:var(--text2)}
+.divider{width:100%;height:1px;background:var(--border)}
+
+.toast{
+  position:fixed;bottom:40px;left:50%;
+  transform:translateX(-50%) translateY(20px);
+  background:var(--text);color:var(--bg);
+  padding:10px 20px;border-radius:999px;font-size:14px;font-weight:500;
+  opacity:0;transition:opacity 0.2s,transform 0.2s;
+  pointer-events:none;white-space:nowrap;z-index:200;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+@media(max-width:400px){
+  .noun-word{font-size:2.6rem}
+  .art-btn{font-size:1.1rem;padding:14px 6px}
+  header{padding:12px 16px} main{padding:18px 16px}
+  .diff-options{flex-direction:column}
+}
+</style>
+</head>
+<body>
+
+<!-- ╔══════════════════════════╗ -->
+<!-- ║      LOGIN SCREEN        ║ -->
+<!-- ╚══════════════════════════╝ -->
+<div id="login-screen" class="screen active">
+  <div class="stars-layer" id="stars"></div>
+  <div class="bubbles-layer" id="bubbles"></div>
+
+  <div class="login-card">
+    <div class="rank-badge">⚡ LEVEL UP</div>
+    <div class="logo-area">
+      <div class="crown">🏆</div>
+      <div class="game-title">ARTIKEL QUEST</div>
+      <div class="tagline">Das Artikel-Lernspiel</div>
+      <div class="articles-row">
+        <span class="pill der">DER</span>
+        <span class="pill die">DIE</span>
+        <span class="pill das">DAS</span>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Benutzername / Username</label>
+      <input class="login-input" type="text" id="username" placeholder="Apna naam likho…" />
+    </div>
+    <div class="form-group">
+      <label>Passwort / Password</label>
+      <input class="login-input" type="password" id="password" placeholder="••••••••" />
+      <div class="forgot"><a href="#">Passwort vergessen?</a></div>
+    </div>
+
+    <div class="login-error" id="login-error"></div>
+
+    <button class="btn-login" onclick="doLogin()">SPIELEN ▶</button>
+
+    <div class="score-bar">
+      <span class="score-star">★</span><span class="score-star">★</span><span class="score-star">★</span>
+      <span class="score-text">10,000+ Spieler online</span>
+      <span class="score-star">★</span><span class="score-star">★</span><span class="score-star">★</span>
+    </div>
+
+    <div class="divider-line"><span>oder</span></div>
+    <button class="btn-guest" onclick="guestLogin()">👤 Als Gast spielen</button>
+    <div class="divider-line"><span>neu hier?</span></div>
+    <div class="register">Noch kein Konto? <a href="#">Jetzt registrieren →</a></div>
+  </div>
+</div>
+
+<!-- ╔══════════════════════════╗ -->
+<!-- ║   DIFFICULTY SCREEN      ║ -->
+<!-- ╚══════════════════════════╝ -->
+<div id="diff-screen" class="screen">
+  <div class="diff-card">
+    <div style="font-size:2.4rem;margin-bottom:0.5rem">🎮</div>
+    <div class="welcome-text" id="welcome-name">NAMASTE, SPIELER!</div>
+    <div class="welcome-sub">Choose your mode / Kaunsa mode chahiye?</div>
+
+    <div class="diff-options">
+      <!-- EASY A1-A2 -->
+      <div class="diff-btn diff-easy" onclick="startGame('easy')">
+        <div class="diff-icon">🌱</div>
+        <div class="diff-label">EASY</div>
+        <div class="diff-desc">A1–A2 · With hints & Hindi/English meanings</div>
+        <div class="diff-tags">
+          <span class="diff-tag">40 Nouns Pool</span>
+          <span class="diff-tag">8 Questions</span>
+          <span class="diff-tag">✅ Hindi + Hints</span>
+          <span class="diff-tag">No Timer</span>
+        </div>
+      </div>
+      <!-- HARD B1 -->
+      <div class="diff-btn diff-hard" onclick="startGame('hard')">
+        <div class="diff-icon">🔥</div>
+        <div class="diff-label">HARD</div>
+        <div class="diff-desc">B1 level · No hints, timer active!</div>
+        <div class="diff-tags">
+          <span class="diff-tag">40 Nouns Pool</span>
+          <span class="diff-tag">12 Questions</span>
+          <span class="diff-tag">❌ Hindi hidden</span>
+          <span class="diff-tag">⏱ 8 sec Timer</span>
+        </div>
+      </div>
+    </div>
+    <!-- B2 button full width -->
+    <div class="diff-btn diff-b2" onclick="startGame('b2')" style="margin-top:14px;width:100%;display:flex;align-items:center;gap:18px;padding:1.2rem 1.6rem;text-align:left;">
+      <div class="diff-icon" style="font-size:2rem;margin:0">🧠</div>
+      <div style="flex:1">
+        <div class="diff-label" style="font-size:1.4rem;margin-bottom:4px;">B2 MASTER</div>
+        <div class="diff-desc">Complex nouns · No hints, only 6 seconds!</div>
+      </div>
+      <div class="diff-tags" style="flex-direction:row;flex-wrap:wrap;gap:6px;justify-content:flex-end;align-items:center">
+        <span class="diff-tag">35 Nouns Pool</span>
+        <span class="diff-tag">15 Questions</span>
+        <span class="diff-tag">❌ Hindi hidden</span>
+        <span class="diff-tag">⏱ 6 sec Timer</span>
+      </div>
+    </div>
+
+    <div class="back-link" onclick="showScreen('login-screen')">← Back to Login</div>
+  </div>
+</div>
+
+<!-- ╔══════════════════════════╗ -->
+<!-- ║      GAME SCREEN         ║ -->
+<!-- ╚══════════════════════════╝ -->
+<div id="game-wrapper" class="screen">
+  <header>
+    <button class="icon-btn" onclick="openModal('help')" title="How to play">?</button>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div class="header-logo">ARTIKEL</div>
+      <span class="diff-badge-header" id="diff-badge"></span>
+    </div>
+    <div class="header-icons">
+      <button class="icon-btn" onclick="toggleTheme()" id="theme-btn" title="Dark mode">🌙</button>
+      <button class="icon-btn" onclick="openModal('stats')" title="Stats">📊</button>
+    </div>
+  </header>
+
+  <main>
+    <div class="round-dots" id="round-dots"></div>
+
+    <!-- Timer bar (hard mode) -->
+    <div class="timer-bar-wrap" id="timer-bar-wrap">
+      <div class="timer-bar-fill" id="timer-bar-fill" style="width:100%"></div>
+    </div>
+
+    <div id="game-screen" style="width:100%;display:flex;flex-direction:column;align-items:center;gap:20px;">
+      <div class="noun-card" id="noun-card">
+        <button class="voice-btn" id="voice-btn" onclick="speakCurrent()" title="🔊 Sunो">🔊</button>
+        <div class="artikel-pill" id="artikel-pill"></div>
+        <div class="noun-category" id="noun-category"></div>
+        <div class="noun-word" id="noun-word"></div>
+        <div class="noun-plural" id="noun-plural"></div>
+        <div class="noun-hindi" id="noun-hindi"></div>
+        <div class="noun-english" id="noun-english"></div>
+        <div class="reveal-hint" id="reveal-hint"></div>
+        <div class="verdict" id="verdict"></div>
+      </div>
+
+      <div class="history-row" id="history-row"></div>
+
+      <div class="btn-row">
+        <button class="art-btn btn-der" id="btn-der" onclick="guess('der')">der</button>
+        <button class="art-btn btn-die" id="btn-die" onclick="guess('die')">die</button>
+        <button class="art-btn btn-das" id="btn-das" onclick="guess('das')">das</button>
+      </div>
+
+      <!-- Nav buttons: Easy mode mein answer ke baad dikhte hain -->
+      <div class="nav-btn-row" id="nav-btns">
+        <button class="nav-btn" id="btn-prev" onclick="navPrev()">← Previous</button>
+        <button class="nav-btn nav-next" id="btn-next" onclick="navNext()">Next →</button>
+      </div>
+
+      <div class="streak-row" id="streak-row">
+        <div class="stat-mini"><div class="stat-mini-num" id="stat-correct">0</div><div class="stat-mini-label">✓ Correct</div></div>
+        <div class="stat-mini"><div class="stat-mini-num" id="stat-streak">0</div><div class="stat-mini-label">⚡ Streak</div></div>
+        <div class="stat-mini"><div class="stat-mini-num" id="stat-wrong">0</div><div class="stat-mini-label">✗ Wrong</div></div>
+      </div>
+    </div>
+
+    <!-- Result screen -->
+    <div id="result-screen">
+      <div class="result-big-emoji" id="result-emoji"></div>
+      <div class="result-title" id="result-title"></div>
+      <div class="result-sub" id="result-sub"></div>
+      <div class="divider"></div>
+      <div class="result-emoji-grid" id="result-emoji-grid"></div>
+      <button class="share-btn-full" onclick="shareResult()">📤 Share Result</button>
+      <button class="icon-btn" style="width:auto;padding:10px 24px;border-radius:12px;font-size:14px;" onclick="restartGame()">Play Again ↺</button>
+      <button class="icon-btn" style="width:auto;padding:10px 24px;border-radius:12px;font-size:14px;" onclick="goToDiff()">🎮 Change Mode</button>
+    </div>
+  </main>
+
+  <!-- HELP MODAL -->
+  <div class="modal-overlay" id="help-modal" onclick="closeOnOverlay(event,'help-modal')">
+    <div class="modal" style="position:relative;">
+      <button class="modal-close" onclick="closeModal('help-modal')">×</button>
+      <div class="modal-title">How to Play / Kaise Khelen?</div>
+      <p style="font-size:14px;color:var(--text2);line-height:1.6;margin-bottom:16px;">
+        Each round shows a German noun. Choose the correct article — <strong>DER</strong>, <strong>DIE</strong>, or <strong>DAS</strong>.<br>
+        <span style="opacity:0.7">Har round mein ek German noun dikhega. Sahi artikel choose karo.</span>
+      </p>
+      <div class="help-section-title">Examples</div>
+      <div class="help-example"><div class="help-tile" style="background:#2563eb">der</div><div class="help-text"><strong>Tisch</strong> (मेज़) → der Tisch ✓<br>Masculine = der</div></div>
+      <div class="help-example"><div class="help-tile" style="background:#dc2626">die</div><div class="help-text"><strong>Lampe</strong> (लैंप) → die Lampe ✓<br>Feminine = die</div></div>
+      <div class="help-example"><div class="help-tile" style="background:#16a34a">das</div><div class="help-text"><strong>Buch</strong> (किताब) → das Buch ✓<br>Neutral = das</div></div>
+      <div class="help-section-title">Tricks yaad rakho</div>
+      <div class="help-rule">💡 <strong>-ung</strong> ending → HAMESHA <strong>die</strong><br>die Zeitung, die Meinung, die Wohnung</div>
+      <div class="help-rule">💡 <strong>-chen / -lein</strong> ending → HAMESHA <strong>das</strong><br>das Mädchen, das Hähnchen</div>
+      <div class="help-rule">💡 <strong>-er</strong> profession → mostly <strong>der</strong><br>der Lehrer, der Fahrer, der Bäcker</div>
+      <div class="help-rule">💡 <strong>-e</strong> ending → mostly <strong>die</strong><br>die Lampe, die Tasche, die Schule</div>
+    </div>
+  </div>
+
+  <!-- STATS MODAL -->
+  <div class="modal-overlay" id="stats-modal" onclick="closeOnOverlay(event,'stats-modal')">
+    <div class="modal" style="position:relative;">
+      <button class="modal-close" onclick="closeModal('stats-modal')">×</button>
+      <div class="modal-title">Your Stats / Aapki Progress</div>
+      <div class="stats-grid">
+        <div class="stat-box"><div class="stat-num" id="st-played">0</div><div class="stat-label">Played</div></div>
+        <div class="stat-box"><div class="stat-num" id="st-pct">0%</div><div class="stat-label">Correct %</div></div>
+        <div class="stat-box"><div class="stat-num" id="st-streak">0</div><div class="stat-label">Streak</div></div>
+        <div class="stat-box"><div class="stat-num" id="st-best">0</div><div class="stat-label">Best</div></div>
+      </div>
+      <div id="stats-result-grid" style="display:none;">
+        <div class="divider" style="margin-bottom:16px;"></div>
+        <p style="font-size:13px;text-align:center;color:var(--text3);margin-bottom:8px;">Aaj ka result</p>
+        <div class="result-emoji-grid" id="stats-emoji-grid"></div>
+        <button class="share-btn-full" onclick="shareResult()">📤 Share Result</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+</div>
+
+<!-- ═══════════════════════════════════════ SCRIPT ═══ -->
+<script>
+/* ── Screen Manager ─────────────────────────────── */
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+/* ── Stars & Bubbles (login bg) ─────────────────── */
+(function initBg(){
+  const stEl=document.getElementById('stars');
+  for(let i=0;i<120;i++){
+    const s=document.createElement('div'); s.className='star';
+    const sz=Math.random()*2.5+0.5;
+    s.style.cssText=`width:${sz}px;height:${sz}px;left:${Math.random()*100}%;top:${Math.random()*100}%;--d:${(Math.random()*4+2).toFixed(1)}s;--op:${(Math.random()*0.6+0.2).toFixed(2)};animation-delay:${(Math.random()*5).toFixed(1)}s`;
+    stEl.appendChild(s);
+  }
+  const bEl=document.getElementById('bubbles');
+  const arts=['DER','DIE','DAS'],cls=['der','die','das'];
+  for(let i=0;i<18;i++){
+    const idx=i%3,b=document.createElement('div');
+    b.className=`bubble ${cls[idx]}`; b.textContent=arts[idx];
+    b.style.cssText=`left:${Math.random()*96}%;--dur:${(Math.random()*10+8).toFixed(1)}s;--delay:${(Math.random()*12).toFixed(1)}s`;
+    bEl.appendChild(b);
+  }
+})();
+
+/* ── Login Logic ─────────────────────────────────── */
+let currentUser = '';
+function doLogin(){
+  const u=document.getElementById('username').value.trim();
+  const p=document.getElementById('password').value.trim();
+  const err=document.getElementById('login-error');
+  if(!u){err.textContent='❗ Username daalna zaroori hai!';return;}
+  if(!p){err.textContent='❗ Password daalna zaroori hai!';return;}
+  if(p.length<4){err.textContent='❗ Password kam se kam 4 characters ka hona chahiye!';return;}
+  err.textContent='';
+  currentUser=u;
+  goToDiff();
+}
+function guestLogin(){
+  currentUser='Mehman';
+  goToDiff();
+}
+function goToDiff(){
+  document.getElementById('welcome-name').textContent=`NAMASTE, ${currentUser.toUpperCase()}! 🙏`;
+  showScreen('diff-screen');
+}
+
+/* ── Game Data ───────────────────────────────────── */
+/* ━━━ A1-A2 EASY (40 nouns) ━━━ */
+const NOUNS_EASY = [
+  // Möbel & Haus
+  {noun:"Tisch",plural:"die Tische",artikel:"der",hindi:"मेज़",en:"table",cat:"A1 · Möbel",hint:"💡 Furniture: der Stuhl, der Tisch, der Schrank"},
+  {noun:"Stuhl",plural:"die Stühle",artikel:"der",hindi:"कुर्सी",en:"chair",cat:"A1 · Möbel",hint:"💡 der Stuhl, der Tisch — masculine furniture!"},
+  {noun:"Fenster",plural:"die Fenster",artikel:"das",hindi:"खिड़की",en:"window",cat:"A1 · Haus",hint:"💡 das Fenster, das Dach, das Zimmer — neutral!"},
+  {noun:"Zimmer",plural:"die Zimmer",artikel:"das",hindi:"कमरा",en:"room",cat:"A1 · Haus",hint:"💡 das Zimmer, das Haus, das Dach — neutral!"},
+  {noun:"Bett",plural:"die Betten",artikel:"das",hindi:"बिस्तर",en:"bed",cat:"A1 · Möbel",hint:"💡 das Bett — short neutral nouns often das"},
+  {noun:"Tür",plural:"die Türen",artikel:"die",hindi:"दरवाज़ा",en:"door",cat:"A1 · Haus",hint:"💡 die Tür — single-syllable feminine!"},
+  // Alltag
+  {noun:"Lampe",plural:"die Lampen",artikel:"die",hindi:"लैंप",en:"lamp",cat:"A1 · Haushalt",hint:"💡 -e ending mostly feminine: die Lampe, die Tasche"},
+  {noun:"Tasche",plural:"die Taschen",artikel:"die",hindi:"थैला",en:"bag / purse",cat:"A1 · Kleidung",hint:"💡 -e ending: die Tasche, die Jacke, die Hose"},
+  {noun:"Uhr",plural:"die Uhren",artikel:"die",hindi:"घड़ी",en:"watch / clock",cat:"A1 · Alltag",hint:"💡 die Uhr — feminine single-syllable!"},
+  {noun:"Buch",plural:"die Bücher",artikel:"das",hindi:"किताब",en:"book",cat:"A1 · Lesen",hint:"💡 das Buch — neutral. Das Heft, das Blatt bhi!"},
+  {noun:"Brief",plural:"die Briefe",artikel:"der",hindi:"पत्र",en:"letter",cat:"A1 · Kommunikation",hint:"💡 der Brief, der Text, der Satz — masculine!"},
+  {noun:"Schloss",plural:"die Schlösser",artikel:"das",hindi:"ताला / महल",en:"lock / castle",cat:"A2 · Alltag",hint:"💡 das Schloss — both lock and castle, neutral!"},
+  // Natur & Tiere
+  {noun:"Hund",plural:"die Hunde",artikel:"der",hindi:"कुत्ता",en:"dog",cat:"A1 · Tier",hint:"💡 der Hund, der Bär, der Fisch — masculine animals!"},
+  {noun:"Katze",plural:"die Katzen",artikel:"die",hindi:"बिल्ली",en:"cat",cat:"A1 · Tier",hint:"💡 die Katze, die Maus, die Kuh — feminine animals!"},
+  {noun:"Vogel",plural:"die Vögel",artikel:"der",hindi:"पक्षी",en:"bird",cat:"A1 · Tier",hint:"💡 der Vogel, der Hund, der Fisch"},
+  {noun:"Pferd",plural:"die Pferde",artikel:"das",hindi:"घोड़ा",en:"horse",cat:"A1 · Tier",hint:"💡 das Pferd, das Schwein, das Schaf"},
+  {noun:"Baum",plural:"die Bäume",artikel:"der",hindi:"पेड़",en:"tree",cat:"A1 · Natur",hint:"💡 der Baum, der Wald, der Berg — masculine nature!"},
+  {noun:"Blume",plural:"die Blumen",artikel:"die",hindi:"फूल",en:"flower",cat:"A1 · Natur",hint:"💡 die Blume — -e ending, feminine!"},
+  // Essen & Trinken
+  {noun:"Kaffee",plural:"die Kaffees",artikel:"der",hindi:"कॉफ़ी",en:"coffee",cat:"A1 · Getränk",hint:"💡 Drinks mostly der: der Kaffee, der Tee, der Saft"},
+  {noun:"Suppe",plural:"die Suppen",artikel:"die",hindi:"सूप",en:"soup",cat:"A1 · Essen",hint:"💡 -e food: die Suppe, die Tomate, die Schokolade"},
+  {noun:"Brot",plural:"die Brote",artikel:"das",hindi:"रोटी / ब्रेड",en:"bread",cat:"A1 · Essen",hint:"💡 das Brot, das Fleisch, das Ei — neutral food!"},
+  {noun:"Wasser",plural:"die Wasser",artikel:"das",hindi:"पानी",en:"water",cat:"A1 · Getränk",hint:"💡 das Wasser — neutral elements: das Feuer, das Eis"},
+  {noun:"Frühstück",plural:"die Frühstücke",artikel:"das",hindi:"नाश्ता",en:"breakfast",cat:"A2 · Essen",hint:"💡 Compound nouns take the gender of the LAST word: Stück = das!"},
+  // Personen & Berufe
+  {noun:"Mädchen",plural:"die Mädchen",artikel:"das",hindi:"लड़की",en:"girl",cat:"A1 · Person",hint:"💡 TRICK: -chen = HAMESHA das! Koi exception nahi!"},
+  {noun:"Kind",plural:"die Kinder",artikel:"das",hindi:"बच्चा",en:"child",cat:"A1 · Person",hint:"💡 Young/children often neutral: das Kind, das Baby"},
+  {noun:"Lehrer",plural:"die Lehrer",artikel:"der",hindi:"शिक्षक",en:"teacher",cat:"A2 · Beruf",hint:"💡 -er profession: der Lehrer, der Fahrer, der Bäcker"},
+  {noun:"Arzt",plural:"die Ärzte",artikel:"der",hindi:"डॉक्टर",en:"doctor",cat:"A2 · Beruf",hint:"💡 der Arzt — masculine professions often der"},
+  {noun:"Beruf",plural:"die Berufe",artikel:"der",hindi:"पेशा",en:"profession / job",cat:"A2 · Arbeit",hint:"💡 der Beruf, der Job, der Betrieb"},
+  // Orte & Verkehr
+  {noun:"Schule",plural:"die Schulen",artikel:"die",hindi:"स्कूल",en:"school",cat:"A1 · Ort",hint:"💡 die Schule — -e endings often feminine!"},
+  {noun:"Wohnung",plural:"die Wohnungen",artikel:"die",hindi:"अपार्टमेंट",en:"apartment / flat",cat:"A1 · Ort",hint:"💡 -ung = HAMESHA die!"},
+  {noun:"Zeitung",plural:"die Zeitungen",artikel:"die",hindi:"अखबार",en:"newspaper",cat:"A2 · Medien",hint:"💡 -ung = HAMESHA die! 100% rule!"},
+  {noun:"Straße",plural:"die Straßen",artikel:"die",hindi:"सड़क",en:"street / road",cat:"A1 · Ort",hint:"💡 die Straße — -e ending feminine!"},
+  {noun:"Stadt",plural:"die Städte",artikel:"die",hindi:"शहर",en:"city / town",cat:"A1 · Ort",hint:"💡 die Stadt, die Welt, die Zeit — short feminine!"},
+  {noun:"Auto",plural:"die Autos",artikel:"das",hindi:"कार",en:"car",cat:"A1 · Fahrzeug",hint:"💡 -o ending mostly neutral: das Auto, das Radio"},
+  {noun:"Zug",plural:"die Züge",artikel:"der",hindi:"ट्रेन",en:"train",cat:"A2 · Fahrzeug",hint:"💡 der Zug, der Bus, der Flug — transport, masculine!"},
+  // Technik & Medien
+  {noun:"Handy",plural:"die Handys",artikel:"das",hindi:"मोबाइल फोन",en:"mobile phone",cat:"A2 · Technik",hint:"💡 Tech: das Handy, das Tablet, das Internet"},
+  {noun:"Film",plural:"die Filme",artikel:"der",hindi:"फ़िल्म",en:"film / movie",cat:"A2 · Medien",hint:"💡 der Film, der Ton, der Sender"},
+  // Verschiedenes
+  {noun:"Geld",plural:"die Gelder",artikel:"das",hindi:"पैसा",en:"money",cat:"A2 · Alltag",hint:"💡 das Geld — neutral abstract value words often das"},
+  {noun:"Nacht",plural:"die Nächte",artikel:"die",hindi:"रात",en:"night",cat:"A1 · Zeit",hint:"💡 die Nacht, die Zeit, die Stunde — time feminine!"},
+  {noun:"Musik",plural:"die Musiken",artikel:"die",hindi:"संगीत",en:"music",cat:"A2 · Kunst",hint:"💡 -ik ending → HAMESHA die: die Musik, die Physik, die Mathematik"},
+];
+
+/* ━━━ B1 HARD (40 nouns) ━━━ */
+const NOUNS_HARD = [
+  // Abstract
+  {noun:"Freiheit",plural:"die Freiheiten",artikel:"die",hindi:"आज़ादी",en:"freedom",cat:"B1 · Abstract",hint:""},
+  {noun:"Freundschaft",plural:"die Freundschaften",artikel:"die",hindi:"दोस्ती",en:"friendship",cat:"B1 · Abstract",hint:""},
+  {noun:"Meinung",plural:"die Meinungen",artikel:"die",hindi:"राय",en:"opinion",cat:"B1 · Abstract",hint:""},
+  {noun:"Lösung",plural:"die Lösungen",artikel:"die",hindi:"समाधान",en:"solution",cat:"B1 · Abstract",hint:""},
+  {noun:"Bedeutung",plural:"die Bedeutungen",artikel:"die",hindi:"महत्व / अर्थ",en:"meaning / significance",cat:"B1 · Abstract",hint:""},
+  {noun:"Stimmung",plural:"die Stimmungen",artikel:"die",hindi:"मनोदशा",en:"mood / atmosphere",cat:"B1 · Abstract",hint:""},
+  {noun:"Gefühl",plural:"die Gefühle",artikel:"das",hindi:"एहसास",en:"feeling / emotion",cat:"B1 · Abstract",hint:""},
+  {noun:"Verhalten",plural:"die Verhalten",artikel:"das",hindi:"व्यवहार",en:"behavior",cat:"B1 · Abstract",hint:""},
+  {noun:"Erlebnis",plural:"die Erlebnisse",artikel:"das",hindi:"अनुभव",en:"experience / adventure",cat:"B1 · Abstract",hint:""},
+  {noun:"Thema",plural:"die Themen",artikel:"das",hindi:"विषय",en:"topic / theme",cat:"B1 · Sprache",hint:""},
+  // Gesellschaft
+  {noun:"Gesellschaft",plural:"die Gesellschaften",artikel:"die",hindi:"समाज",en:"society / company",cat:"B1 · Gesellschaft",hint:""},
+  {noun:"Vergangenheit",plural:"—",artikel:"die",hindi:"अतीत",en:"past / history",cat:"B1 · Zeit",hint:""},
+  {noun:"Gesundheit",plural:"—",artikel:"die",hindi:"सेहत",en:"health",cat:"B1 · Abstract",hint:""},
+  {noun:"Wissenschaft",plural:"die Wissenschaften",artikel:"die",hindi:"विज्ञान",en:"science",cat:"B1 · Bildung",hint:""},
+  {noun:"Entscheidung",plural:"die Entscheidungen",artikel:"die",hindi:"फ़ैसला",en:"decision",cat:"B1 · Abstract",hint:""},
+  {noun:"Erfolg",plural:"die Erfolge",artikel:"der",hindi:"सफलता",en:"success",cat:"B1 · Abstract",hint:""},
+  {noun:"Grund",plural:"die Gründe",artikel:"der",hindi:"कारण",en:"reason / ground",cat:"B1 · Sprache",hint:""},
+  {noun:"Bericht",plural:"die Berichte",artikel:"der",hindi:"रिपोर्ट",en:"report",cat:"B1 · Medien",hint:""},
+  {noun:"Charakter",plural:"die Charaktere",artikel:"der",hindi:"चरित्र",en:"character",cat:"B1 · Person",hint:""},
+  {noun:"Zweck",plural:"die Zwecke",artikel:"der",hindi:"उद्देश्य",en:"purpose / aim",cat:"B1 · Abstract",hint:""},
+  // Haushalt & Alltag
+  {noun:"Wörterbuch",plural:"die Wörterbücher",artikel:"das",hindi:"शब्दकोश",en:"dictionary",cat:"B1 · Bildung",hint:""},
+  {noun:"Hemd",plural:"die Hemden",artikel:"das",hindi:"कमीज़",en:"shirt",cat:"B1 · Kleidung",hint:""},
+  {noun:"Schlüssel",plural:"die Schlüssel",artikel:"der",hindi:"चाबी",en:"key",cat:"B1 · Haushalt",hint:""},
+  {noun:"Glas",plural:"die Gläser",artikel:"das",hindi:"गिलास",en:"glass",cat:"B1 · Haushalt",hint:""},
+  {noun:"Spiegel",plural:"die Spiegel",artikel:"der",hindi:"शीशा",en:"mirror",cat:"B1 · Haushalt",hint:""},
+  {noun:"Küche",plural:"die Küchen",artikel:"die",hindi:"रसोई",en:"kitchen",cat:"B1 · Ort",hint:""},
+  // Orte & Verkehr
+  {noun:"Brücke",plural:"die Brücken",artikel:"die",hindi:"पुल",en:"bridge",cat:"B1 · Ort",hint:""},
+  {noun:"Bahnhof",plural:"die Bahnhöfe",artikel:"der",hindi:"रेलवे स्टेशन",en:"train station",cat:"B1 · Ort",hint:""},
+  {noun:"Krankenhaus",plural:"die Krankenhäuser",artikel:"das",hindi:"अस्पताल",en:"hospital",cat:"B1 · Ort",hint:""},
+  {noun:"Flugzeug",plural:"die Flugzeuge",artikel:"das",hindi:"हवाई जहाज़",en:"airplane",cat:"B1 · Fahrzeug",hint:""},
+  {noun:"Fahrrad",plural:"die Fahrräder",artikel:"das",hindi:"साइकिल",en:"bicycle",cat:"B1 · Fahrzeug",hint:""},
+  // Gespräch & Kultur
+  {noun:"Gespräch",plural:"die Gespräche",artikel:"das",hindi:"बातचीत",en:"conversation",cat:"B1 · Kommunikation",hint:""},
+  {noun:"Gedicht",plural:"die Gedichte",artikel:"das",hindi:"कविता",en:"poem",cat:"B1 · Literatur",hint:""},
+  {noun:"Gewitter",plural:"die Gewitter",artikel:"das",hindi:"तूफ़ान",en:"thunderstorm",cat:"B1 · Wetter",hint:""},
+  {noun:"Abendessen",plural:"die Abendessen",artikel:"das",hindi:"रात का खाना",en:"dinner / supper",cat:"B1 · Essen",hint:""},
+  {noun:"Beziehung",plural:"die Beziehungen",artikel:"die",hindi:"रिश्ता",en:"relationship",cat:"B1 · Abstract",hint:""},
+  {noun:"Erfahrung",plural:"die Erfahrungen",artikel:"die",hindi:"अनुभव",en:"experience",cat:"B1 · Abstract",hint:""},
+  {noun:"Möglichkeit",plural:"die Möglichkeiten",artikel:"die",hindi:"संभावना",en:"possibility / opportunity",cat:"B1 · Abstract",hint:""},
+  {noun:"Unterschied",plural:"die Unterschiede",artikel:"der",hindi:"अंतर",en:"difference",cat:"B1 · Abstract",hint:""},
+  {noun:"Einfluss",plural:"die Einflüsse",artikel:"der",hindi:"प्रभाव",en:"influence",cat:"B1 · Abstract",hint:""},
+];
+
+/* ━━━ B2 (35 nouns) ━━━ */
+const NOUNS_B2 = [
+  {noun:"Verantwortung",plural:"die Verantwortungen",artikel:"die",hindi:"जिम्मेदारी",en:"responsibility",cat:"B2 · Gesellschaft",hint:""},
+  {noun:"Gerechtigkeit",plural:"—",artikel:"die",hindi:"न्याय",en:"justice / fairness",cat:"B2 · Gesellschaft",hint:""},
+  {noun:"Überzeugung",plural:"die Überzeugungen",artikel:"die",hindi:"दृढ़ विश्वास",en:"conviction / belief",cat:"B2 · Abstract",hint:""},
+  {noun:"Herausforderung",plural:"die Herausforderungen",artikel:"die",hindi:"चुनौती",en:"challenge",cat:"B2 · Abstract",hint:""},
+  {noun:"Auswirkung",plural:"die Auswirkungen",artikel:"die",hindi:"प्रभाव / परिणाम",en:"impact / effect",cat:"B2 · Abstract",hint:""},
+  {noun:"Voraussetzung",plural:"die Voraussetzungen",artikel:"die",hindi:"पूर्व शर्त",en:"prerequisite / condition",cat:"B2 · Abstract",hint:""},
+  {noun:"Notwendigkeit",plural:"die Notwendigkeiten",artikel:"die",hindi:"आवश्यकता",en:"necessity / need",cat:"B2 · Abstract",hint:""},
+  {noun:"Abhängigkeit",plural:"die Abhängigkeiten",artikel:"die",hindi:"निर्भरता",en:"dependence / addiction",cat:"B2 · Abstract",hint:""},
+  {noun:"Eigenschaft",plural:"die Eigenschaften",artikel:"die",hindi:"गुण / विशेषता",en:"quality / characteristic",cat:"B2 · Abstract",hint:""},
+  {noun:"Wirklichkeit",plural:"die Wirklichkeiten",artikel:"die",hindi:"वास्तविकता",en:"reality",cat:"B2 · Abstract",hint:""},
+  {noun:"Bewusstsein",plural:"die Bewusstseine",artikel:"das",hindi:"चेतना / जागरूकता",en:"consciousness / awareness",cat:"B2 · Kognition",hint:""},
+  {noun:"Gleichgewicht",plural:"die Gleichgewichte",artikel:"das",hindi:"संतुलन",en:"balance / equilibrium",cat:"B2 · Kognition",hint:""},
+  {noun:"Verständnis",plural:"die Verständnisse",artikel:"das",hindi:"समझ",en:"understanding / comprehension",cat:"B2 · Kognition",hint:""},
+  {noun:"Ergebnis",plural:"die Ergebnisse",artikel:"das",hindi:"परिणाम",en:"result / outcome",cat:"B2 · Abstract",hint:""},
+  {noun:"Verhältnis",plural:"die Verhältnisse",artikel:"das",hindi:"संबंध / अनुपात",en:"relationship / ratio",cat:"B2 · Abstract",hint:""},
+  {noun:"Phänomen",plural:"die Phänomene",artikel:"das",hindi:"घटना / परिघटना",en:"phenomenon",cat:"B2 · Wissenschaft",hint:""},
+  {noun:"Prinzip",plural:"die Prinzipien",artikel:"das",hindi:"सिद्धांत",en:"principle",cat:"B2 · Wissenschaft",hint:""},
+  {noun:"Fortschritt",plural:"die Fortschritte",artikel:"der",hindi:"प्रगति",en:"progress / advancement",cat:"B2 · Entwicklung",hint:""},
+  {noun:"Zusammenhang",plural:"die Zusammenhänge",artikel:"der",hindi:"संदर्भ / संबंध",en:"context / connection",cat:"B2 · Sprache",hint:""},
+  {noun:"Zusammenhalt",plural:"die Zusammenhalte",artikel:"der",hindi:"एकता / सामंजस्य",en:"cohesion / solidarity",cat:"B2 · Gesellschaft",hint:""},
+  {noun:"Zusammenbruch",plural:"die Zusammenbrüche",artikel:"der",hindi:"पतन / टूटन",en:"collapse / breakdown",cat:"B2 · Abstract",hint:""},
+  {noun:"Widerspruch",plural:"die Widersprüche",artikel:"der",hindi:"विरोधाभास",en:"contradiction",cat:"B2 · Logik",hint:""},
+  {noun:"Schwerpunkt",plural:"die Schwerpunkte",artikel:"der",hindi:"मुख्य बिंदु",en:"focus / emphasis",cat:"B2 · Abstract",hint:""},
+  {noun:"Ursprung",plural:"die Ursprünge",artikel:"der",hindi:"उत्पत्ति / मूल",en:"origin / source",cat:"B2 · Abstract",hint:""},
+  {noun:"Anspruch",plural:"die Ansprüche",artikel:"der",hindi:"दावा / अपेक्षा",en:"claim / expectation",cat:"B2 · Gesellschaft",hint:""},
+  {noun:"Verwaltung",plural:"die Verwaltungen",artikel:"die",hindi:"प्रशासन",en:"administration",cat:"B2 · Wirtschaft",hint:""},
+  {noun:"Leistung",plural:"die Leistungen",artikel:"die",hindi:"प्रदर्शन / उपलब्धि",en:"performance / achievement",cat:"B2 · Beruf",hint:""},
+  {noun:"Erscheinung",plural:"die Erscheinungen",artikel:"die",hindi:"प्रकटन / घटना",en:"appearance / phenomenon",cat:"B2 · Abstract",hint:""},
+  {noun:"Entwicklung",plural:"die Entwicklungen",artikel:"die",hindi:"विकास",en:"development",cat:"B2 · Gesellschaft",hint:""},
+  {noun:"Umgebung",plural:"die Umgebungen",artikel:"die",hindi:"वातावरण / आसपास",en:"environment / surroundings",cat:"B2 · Natur",hint:""},
+  {noun:"Urteil",plural:"die Urteile",artikel:"das",hindi:"फ़ैसला / निर्णय",en:"judgment / verdict",cat:"B2 · Recht",hint:""},
+  {noun:"Merkmal",plural:"die Merkmale",artikel:"das",hindi:"लक्षण / विशेषता",en:"feature / characteristic",cat:"B2 · Wissenschaft",hint:""},
+  {noun:"Vorbild",plural:"die Vorbilder",artikel:"das",hindi:"आदर्श / रोल मॉडल",en:"role model / example",cat:"B2 · Gesellschaft",hint:""},
+  {noun:"Leitbild",plural:"die Leitbilder",artikel:"das",hindi:"दृष्टिकोण / आदर्श",en:"vision / guiding principle",cat:"B2 · Beruf",hint:""},
+  {noun:"Zeugnis",plural:"die Zeugnisse",artikel:"das",hindi:"प्रमाण पत्र / गवाही",en:"certificate / testimony",cat:"B2 · Bildung",hint:""},
+];
+
+/* ── Game State ──────────────────────────────────── */
+let difficulty = 'easy';
+let ROUNDS = 8;
+let queue=[], cur=0, answered=false, viewIdx=0;
+let sessionCorrect=0, sessionWrong=0, streak=0, bestStreak=0;
+let results=[];
+let timerInterval=null, timerLeft=0;
+let stats = JSON.parse(localStorage.getItem('artikel_stats')||'{"played":0,"totalCorrect":0,"totalQ":0,"streak":0,"best":0}');
+
+function shuffle(a){const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]];}return b;}
+
+/* ── Start Game ──────────────────────────────────── */
+function startGame(diff){
+  difficulty = diff;
+  if(diff==='hard') ROUNDS = 12;
+  else if(diff==='b2') ROUNDS = 15;
+  else ROUNDS = 8;
+
+  const pool = diff==='hard' ? NOUNS_HARD : diff==='b2' ? NOUNS_B2 : NOUNS_EASY;
+  queue = shuffle(pool).slice(0, ROUNDS);
+  cur=0; results=[]; answered=false; viewIdx=0;
+  sessionCorrect=0; sessionWrong=0; streak=0; bestStreak=0;
+
+  // Badge
+  const badge = document.getElementById('diff-badge');
+  if(diff==='b2'){ badge.textContent='🧠 B2'; badge.className='diff-badge-header b2'; }
+  else { badge.textContent = diff==='hard' ? '🔥 HARD B1' : '🌱 EASY A1-A2'; badge.className = 'diff-badge-header ' + diff; }
+
+  // Timer bar
+  document.getElementById('timer-bar-wrap').style.display = (diff==='hard'||diff==='b2') ? 'block' : 'none';
+
+  // Dark mode
+  if(dark) document.documentElement.setAttribute('data-theme','dark');
+
+  showScreen('game-wrapper');
+  buildDots(); updateMiniStats();
+  document.getElementById('game-screen').style.display='flex';
+  document.getElementById('result-screen').style.display='none';
+  document.getElementById('history-row').innerHTML='';
+  showQuestion();
+}
+
+function buildDots(){
+  const row=document.getElementById('round-dots');
+  row.innerHTML='';
+  for(let i=0;i<ROUNDS;i++){
+    const d=document.createElement('div');
+    d.className='dot'+(i===0?' active':''); d.id='dot'+i;
+    row.appendChild(d);
+  }
+}
+
+/* ── Timer (Hard Mode) ───────────────────────────── */
+const TIMER_SEC_HARD = 8;
+const TIMER_SEC_B2   = 6;
+function startTimer(){
+  clearInterval(timerInterval);
+  const TIMER_SEC = difficulty==='b2' ? TIMER_SEC_B2 : TIMER_SEC_HARD;
+  timerLeft = TIMER_SEC;
+  const fill = document.getElementById('timer-bar-fill');
+  fill.style.width='100%';
+  timerInterval = setInterval(()=>{
+    timerLeft -= 0.1;
+    const pct = Math.max(0, (timerLeft/TIMER_SEC)*100);
+    fill.style.width = pct+'%';
+    if(timerLeft <= 0){ clearInterval(timerInterval); autoWrong(); }
+  }, 100);
+}
+
+function autoWrong(){
+  if(answered) return;
+  answered=true;
+  const n=queue[cur];
+  streak=0; sessionWrong++;
+  results.push({right:false, artikel:n.artikel, noun:n.noun, chosen:null});
+  updateMiniStats();
+  document.getElementById('noun-card').classList.add('revealed-'+n.artikel);
+  const pill=document.getElementById('artikel-pill');
+  pill.textContent=n.artikel+' '+n.noun; pill.className='artikel-pill '+n.artikel+' show';
+  const vd=document.getElementById('verdict');
+  vd.textContent='⏱ Time Out! Correct: '+n.artikel+' '+n.noun; vd.className='verdict show wrong';
+
+  // Show correct in green, hide others
+  ['der','die','das'].forEach(a=>{
+    const btn=document.getElementById('btn-'+a);
+    btn.disabled=true;
+    if(a===n.artikel){
+      btn.className='art-btn btn-'+a+' btn-correct';
+      btn.style.display='';
+    } else {
+      btn.style.display='none';
+    }
+  });
+
+  document.getElementById('dot'+cur).className='dot wrong';
+  addHistoryTile(n,false);
+  setTimeout(advanceAfterAnswer, 2000);
+}
+
+function stopTimer(){ clearInterval(timerInterval); }
+
+/* ── Text-to-Speech (German only) ───────────────── */
+let ttsVoice = null;
+let voicesLoaded = false;
+
+function loadTTSVoice(){
+  const voices = window.speechSynthesis.getVoices();
+  if(!voices.length) return;
+  voicesLoaded = true;
+  // Priority: local de-DE > any de-DE > any de-* > null (will still force lang)
+  ttsVoice = voices.find(v=>v.lang==='de-DE' && v.localService) ||
+             voices.find(v=>v.lang==='de-DE') ||
+             voices.find(v=>v.lang.startsWith('de-')) ||
+             voices.find(v=>v.lang.startsWith('de')) || null;
+  console.log('German voice:', ttsVoice ? ttsVoice.name : 'none found, using lang=de-DE');
+}
+
+if(window.speechSynthesis){
+  loadTTSVoice();
+  window.speechSynthesis.onvoiceschanged = loadTTSVoice;
+  // Some browsers need a small delay
+  setTimeout(loadTTSVoice, 500);
+}
+
+function speakWord(word){
+  if(!window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+
+  // If voices not yet loaded, try again
+  if(!voicesLoaded) loadTTSVoice();
+
+  const utter = new SpeechSynthesisUtterance(word);
+  utter.lang = 'de-DE';   // Always German — yeh sabse zaroori hai
+  utter.rate = 0.78;      // Thoda slow — clearly sunayi de
+  utter.pitch = 1;
+
+  // Only set voice if it is actually a German voice
+  if(ttsVoice && (ttsVoice.lang.startsWith('de'))){ 
+    utter.voice = ttsVoice;
+  }
+  // If no German voice found: lang='de-DE' alone still forces German accent on most browsers
+
+  const btn = document.getElementById('voice-btn');
+  if(btn){
+    btn.classList.add('speaking');
+    utter.onend = ()=>btn.classList.remove('speaking');
+    utter.onerror = ()=>btn.classList.remove('speaking');
+  }
+  window.speechSynthesis.speak(utter);
+}
+
+function speakCurrent(){
+  if(queue[viewIdx]) speakWord(queue[viewIdx].noun);
+}
+
+/* ── Question & Guess ────────────────────────────── */
+function showQuestion(){
+  answered=false;
+  viewIdx=cur;
+  const n=queue[cur];
+  const card=document.getElementById('noun-card');
+  card.className='noun-card'; card.style.opacity='1'; card.style.transform='';
+  document.getElementById('artikel-pill').className='artikel-pill';
+  document.getElementById('artikel-pill').textContent='';
+  document.getElementById('noun-category').textContent=n.cat;
+  document.getElementById('noun-word').textContent=n.noun;
+  document.getElementById('noun-plural').textContent='Plural: '+n.plural;
+
+  // Hindi: hidden in hard mode before answer
+  const hindiEl = document.getElementById('noun-hindi');
+  hindiEl.textContent = (difficulty==='hard'||difficulty==='b2') ? '🙈 Hidden' : n.hindi;
+  hindiEl.style.opacity = (difficulty==='hard'||difficulty==='b2') ? '0.3' : '1';
+
+  // English: always shown as small hint
+  const enEl = document.getElementById('noun-english');
+  enEl.textContent = (difficulty==='hard'||difficulty==='b2') ? '' : (n.en ? '(' + n.en + ')' : '');
+  enEl.style.opacity = '0.7';
+
+  document.getElementById('reveal-hint').className='reveal-hint';
+  document.getElementById('reveal-hint').textContent='';
+  document.getElementById('verdict').className='verdict';
+  document.getElementById('verdict').textContent='';
+
+  // Reset all buttons: show, re-enable, remove color classes
+  ['der','die','das'].forEach(a=>{
+    const b=document.getElementById('btn-'+a);
+    b.disabled=false;
+    b.style.display='';
+    b.style.opacity='';
+    b.className='art-btn btn-'+a;
+  });
+
+  // Hide easy-mode nav buttons
+  document.getElementById('nav-btns').style.display='none';
+
+  if(difficulty==='hard' || difficulty==='b2') startTimer();
+
+  // Auto-speak the word
+  setTimeout(()=>speakWord(n.noun), 300);
+}
+
+function guess(chosen){
+  if(answered) return;
+  stopTimer();
+  answered=true;
+  const n=queue[cur];
+  const right=chosen===n.artikel;
+  if(right){streak++;sessionCorrect++;if(streak>bestStreak)bestStreak=streak;}
+  else{streak=0;sessionWrong++;}
+  results.push({right,artikel:n.artikel,noun:n.noun,chosen:chosen});
+  updateMiniStats();
+
+  document.getElementById('noun-card').classList.add('revealed-'+n.artikel);
+
+  // Reveal Hindi + English in hard/b2 mode after answer
+  if(difficulty==='hard'||difficulty==='b2'){
+    const hindiEl=document.getElementById('noun-hindi');
+    hindiEl.textContent=n.hindi; hindiEl.style.opacity='1';
+    const enEl=document.getElementById('noun-english');
+    enEl.textContent=n.en?'('+n.en+')':''; enEl.style.opacity='0.7';
+  }
+
+  // 🔊 Speak the full "artikel + noun" in German
+  setTimeout(()=>speakWord(n.artikel+' '+n.noun), 200);
+
+  const pill=document.getElementById('artikel-pill');
+  pill.textContent=n.artikel+' '+n.noun; pill.className='artikel-pill '+n.artikel+' show';
+
+  // Hint only in easy mode
+  if(difficulty==='easy' && n.hint){
+    const hint=document.getElementById('reveal-hint');
+    hint.textContent=n.hint; hint.className='reveal-hint show';
+  }
+
+  const vd=document.getElementById('verdict');
+  vd.textContent=right?'✓ Correct! Sehr gut! 🌟':'✗ Wrong — '+n.artikel+' '+n.noun;
+  vd.className='verdict show '+(right?'correct':'wrong');
+
+  // Button colors: sahi = green, galat = red, baaki = hide
+  ['der','die','das'].forEach(a=>{
+    const btn=document.getElementById('btn-'+a);
+    btn.disabled=true;
+    if(a===n.artikel){
+      btn.className='art-btn btn-'+a+' btn-correct';
+      btn.style.display='';
+      btn.style.opacity='';
+    } else if(a===chosen && !right){
+      btn.className='art-btn btn-'+a+' btn-wrong';
+      btn.style.display='';
+      btn.style.opacity='';
+    } else {
+      // baaki button hide karo
+      btn.style.display='none';
+    }
+  });
+
+  document.getElementById('dot'+cur).className='dot '+(right?n.artikel:'wrong');
+  addHistoryTile(n,right);
+
+  if(difficulty==='easy'){
+    // Easy mode: nav buttons dikhao, auto-next nahi
+    document.getElementById('nav-btns').style.display='flex';
+    updateNavBtns();
+  } else {
+    setTimeout(advanceAfterAnswer,2000);
+  }
+}
+
+function advanceAfterAnswer(){
+  if(cur+1<ROUNDS){
+    const nx=document.getElementById('dot'+(cur+1));
+    if(nx) nx.className='dot active';
+  }
+  const card=document.getElementById('noun-card');
+  const right=results[cur]?.right;
+  card.classList.add(right?'fly-out-right':'fly-out-left');
+  setTimeout(()=>{
+    cur++;
+    if(cur>=ROUNDS){showResult();return;}
+    card.className='noun-card'; card.style.opacity='0'; card.style.transform='translateX(-30px)';
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      card.classList.add('fly-in'); card.style.opacity=''; card.style.transform='';
+      showQuestion();
+    }));
+  },350);
+}
+
+/* ── Easy Mode Navigation ────────────────────────── */
+function navPrev(){
+  if(viewIdx > 0){
+    viewIdx--;
+    showReview(viewIdx);
+  }
+}
+
+function navNext(){
+  if(viewIdx < cur){
+    // Pichla dekh rahe the, aage jao
+    viewIdx++;
+    showReview(viewIdx);
+  } else {
+    // Current question par hain, aage badho
+    document.getElementById('nav-btns').style.display='none';
+    advanceAfterAnswer();
+  }
+}
+
+function showReview(idx){
+  const n=queue[idx];
+  const res=results[idx];
+  if(!res) return;
+
+  // Card reset
+  const card=document.getElementById('noun-card');
+  card.className='noun-card revealed-'+n.artikel;
+  card.style.opacity='1'; card.style.transform='';
+
+  // Content fill
+  document.getElementById('noun-category').textContent=n.cat;
+  document.getElementById('noun-word').textContent=n.noun;
+  document.getElementById('noun-plural').textContent='Plural: '+n.plural;
+  document.getElementById('noun-hindi').textContent=n.hindi;
+  document.getElementById('noun-hindi').style.opacity='1';
+  document.getElementById('noun-english').textContent=n.en?'('+n.en+')':'';
+  document.getElementById('noun-english').style.opacity='0.7';
+
+  const pill=document.getElementById('artikel-pill');
+  pill.textContent=n.artikel+' '+n.noun; pill.className='artikel-pill '+n.artikel+' show';
+
+  const vd=document.getElementById('verdict');
+  vd.textContent=res.right?'✓ Correct! Sehr gut! 🌟':'✗ Wrong — '+n.artikel+' '+n.noun;
+  vd.className='verdict show '+(res.right?'correct':'wrong');
+
+  if(n.hint){
+    const hint=document.getElementById('reveal-hint');
+    hint.textContent=n.hint; hint.className='reveal-hint show';
+  } else {
+    document.getElementById('reveal-hint').className='reveal-hint';
+  }
+
+  // Buttons: green/red/hidden
+  ['der','die','das'].forEach(a=>{
+    const btn=document.getElementById('btn-'+a);
+    btn.disabled=true;
+    btn.className='art-btn btn-'+a;
+    btn.style.opacity='';
+    if(a===n.artikel){
+      btn.classList.add('btn-correct'); btn.style.display='';
+    } else if(res.chosen && a===res.chosen && !res.right){
+      btn.classList.add('btn-wrong'); btn.style.display='';
+    } else {
+      btn.style.display='none';
+    }
+  });
+
+  // Speak the reviewed word
+  speakWord(n.noun);
+  updateNavBtns();
+}
+
+function updateNavBtns(){
+  const prevBtn=document.getElementById('btn-prev');
+  const nextBtn=document.getElementById('btn-next');
+  prevBtn.disabled = viewIdx <= 0;
+  prevBtn.textContent = '← Previous';
+  if(viewIdx < cur){
+    nextBtn.textContent='Next →';
+  } else {
+    nextBtn.textContent = (cur+1>=ROUNDS) ? '🏆 Result' : 'Next →';
+  }
+}
+
+function addHistoryTile(n,right){
+  const row=document.getElementById('history-row');
+  const t=document.createElement('div');
+  t.className='history-tile '+(right?n.artikel:'wrong-guess');
+  t.textContent=(right?'':'✗ ')+n.artikel+' '+n.noun;
+  row.appendChild(t);
+  requestAnimationFrame(()=>requestAnimationFrame(()=>t.classList.add('show')));
+}
+
+function updateMiniStats(){
+  document.getElementById('stat-correct').textContent=sessionCorrect;
+  document.getElementById('stat-streak').textContent=streak;
+  document.getElementById('stat-wrong').textContent=sessionWrong;
+}
+
+/* ── Result ──────────────────────────────────────── */
+function showResult(){
+  stopTimer();
+  stats.played++;
+  stats.totalCorrect=(stats.totalCorrect||0)+sessionCorrect;
+  stats.totalQ=(stats.totalQ||0)+ROUNDS;
+  stats.streak=bestStreak;
+  stats.best=Math.max(stats.best||0,bestStreak);
+  localStorage.setItem('artikel_stats',JSON.stringify(stats));
+
+  document.getElementById('game-screen').style.display='none';
+  const rs=document.getElementById('result-screen'); rs.style.display='flex';
+
+  const pct=Math.round((sessionCorrect/ROUNDS)*100);
+  let emoji='📚',title='Keep trying! / Koshish karte raho!';
+  if(pct===100){emoji='🏆';title='Perfect Score! Kamaal! 🌟';}
+  else if(pct>=80){emoji='🎉';title='Excellent! Bahut badhiya!';}
+  else if(pct>=60){emoji='👍';title='Good job! Acha kiya!';}
+
+  document.getElementById('result-emoji').textContent=emoji;
+  document.getElementById('result-title').textContent=title;
+  document.getElementById('result-sub').textContent=sessionCorrect+'/'+ROUNDS+' correct ('+pct+'%) — Best Streak: '+bestStreak;
+
+  const artEmoji={der:'🔵',die:'🩷',das:'🟢'};
+  const grid=results.map(r=>r.right?artEmoji[r.artikel]:'❌').join('');
+  const modeTag = difficulty==='hard'?'[🔥B1 HARD]':difficulty==='b2'?'[🧠B2 MASTER]':'[🌱EASY A1-A2]';
+  document.getElementById('result-emoji-grid').textContent='ARTIKEL '+modeTag+'\n'+grid+'\n'+sessionCorrect+'/'+ROUNDS;
+
+  updateStatsModal();
+  document.getElementById('stats-result-grid').style.display='block';
+  document.getElementById('stats-emoji-grid').textContent='ARTIKEL '+modeTag+'\n'+grid+'\n'+sessionCorrect+'/'+ROUNDS;
+}
+
+function updateStatsModal(){
+  const pct=stats.totalQ?Math.round((stats.totalCorrect/stats.totalQ)*100):0;
+  document.getElementById('st-played').textContent=stats.played||0;
+  document.getElementById('st-pct').textContent=pct+'%';
+  document.getElementById('st-streak').textContent=stats.streak||0;
+  document.getElementById('st-best').textContent=stats.best||0;
+}
+
+function shareResult(){
+  const txt=document.getElementById('result-emoji-grid').textContent;
+  navigator.clipboard.writeText(txt).then(()=>showToast('Result copied! ✓'));
+}
+
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+function openModal(id){if(id==='stats')updateStatsModal();document.getElementById(id+'-modal').classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+function closeOnOverlay(e,id){if(e.target.id===id)closeModal(id);}
+
+let dark=window.matchMedia('(prefers-color-scheme: dark)').matches;
+function toggleTheme(){
+  dark=!dark;
+  document.documentElement.setAttribute('data-theme',dark?'dark':'');
+  document.getElementById('theme-btn').textContent=dark?'☀️':'🌙';
+}
+if(dark){document.documentElement.setAttribute('data-theme','dark');document.getElementById('theme-btn').textContent='☀️';}
+
+function restartGame(){ startGame(difficulty); }
+
+updateStatsModal();
+</script>
+</body>
+</html>
